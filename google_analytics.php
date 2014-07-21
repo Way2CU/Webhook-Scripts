@@ -94,13 +94,23 @@ $event_data = array(
 
 // access configuration
 $config = array(
-		'endpoint_url'	=> 'api.calltrackingmetrics.com',
-		'access_code' 	=> '',
-		'secret_code'	=> ''
+		'validation_code'	=> '',
+		'endpoint_url'		=> 'api.calltrackingmetrics.com',
+		'access_code' 		=> '',
+		'secret_code'		=> ''
 	);
 
 // post all the events
-foreach ($event_data as $event)
-	sendEvent($config, $event, $call_id);
+$result = false;
+if ($_REQUEST['code'] == $config['validation_code']) {
+	$result = true;  // assume all events can be sent
+	foreach ($event_data as $event)
+		$result &= sendEvent($config, $event, $call_id);
+}
+
+// set response code appropriately
+if ($result)
+	http_response_code(200); else
+	http_response_code(400);
 
 ?>
