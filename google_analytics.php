@@ -84,10 +84,10 @@ $call_data = json_decode(file_get_contents('php://input'));
 $call_id = $call_data['id'];
 $event_data = array(
 	array(
-		'ga_category'	=> '',
-		'ga_action'		=> '',
+		'ga_category'	=> 'Calls',
+		'ga_action'		=> $call_data['source'],
 		'ga_label'		=> '',
-		'ga_value'		=> '',
+		'ga_value'		=> $call_data['duration'],
 		'uacode'		=> ''
 	)
 );
