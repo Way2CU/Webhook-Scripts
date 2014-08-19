@@ -54,6 +54,9 @@ function sendData($config, $data) {
 	$result = false;
 	$header = array();
 
+	$content = http_build_query($data);
+	$content_length = strlen($content);
+
 	// compile default headers
 	$header[] = "POST {$config['endpoint']} HTTP/1.1";
 	$header[] = 'Content-Type: application/x-www-form-urlencoded';
