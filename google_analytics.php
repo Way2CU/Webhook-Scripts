@@ -50,7 +50,7 @@ function sendEvent($config, $event, $call_id) {
 	// prepare header
 	$header = "POST /api/v1/ga/{$call_id}.json HTTP/1.1\n";
 	$header .= "Content-Type: application/x-www-form-urlencoded\n";
-	$header .= "Content-Length: " . strlen($content_length) . "\n";
+	$header .= "Content-Length: {$content_length}\n";
 	$header .= makeAuthorization($config);
 	$header .= "Connection: close\n\n";
 
