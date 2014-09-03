@@ -59,18 +59,22 @@ function sendData($config, $data) {
 
 	// compile default headers
 	$header[] = "POST {$config['endpoint']} HTTP/1.1";
+	$header[] = 'Host: '.$config['hostname'];
 	$header[] = 'Content-Type: application/x-www-form-urlencoded';
-	$header[] = 'Content-Length: ' . strlen($content_length);
+	$header[] = 'Content-Length: '.$content_length;
+	$header[] = 'Connect-time: 0';
 	$header[] = 'Connection: close';
 
 	// add authentication if needed
 	if (!is_null($config['username']) && !is_null($config['password']))
 		$header[] = makeAuthorization($config);
+
+	$header_string = implode("\r\n", $header);
 	
 	// open socket
 	$port = $config['port'];
 	if (is_null($port))
-		$port = !is_null($config['encryption']) ? 443 : 80; else
+		$port = !is_null($config['encryption']) ? 443 : 80;
 
 	$prefix = '';
 	if (!is_null($config['encryption']))
@@ -81,7 +85,7 @@ function sendData($config, $data) {
 
 	if ($socket && $error_number == 0) {
 		// send and receive data
-		fputs($socket, $header.$content);
+		fwrite($socket, $header_string."\r\n\r\n".$content);
 		$raw_data = stream_get_contents($socket, 1024);
 
 		// parse response
@@ -92,6 +96,8 @@ function sendData($config, $data) {
 
 		// assume everything went according to plan
 		$result = true;
+	} else {
+		trigger_error('There was a problem opening "'.$prefix.$config['hostname'].'".', E_USER_ERROR);
 	}
 
 	return $result;
@@ -106,17 +112,26 @@ function sendData($config, $data) {
  * @return array
  */
 function prepareData($config, $data) {
-	$result = array();
+	$result = array(
+		'globalpass'	=> 'yav3329',
+		'projectid'		=> 157,
+		'publisher'		=> 1380,
+		'fullname'		=> '',
+		'phone'			=> $data['caller_number'],
+		'email'			=> '',
+		'note'			=> $data['audio'],
+		'banner'		=> 'callbox'
+	);
 
 	return $result;
 }
 
 // remote interface configuration
 $config = array(
-		'hostname'		=> '',
-		'endpoint'		=> '',
+		'hostname'		=> 'nadlan2u.co.il',
+		'endpoint'		=> '/leadsbanner.asmx/getleadsbanner',
 		'port'			=> null,
-		'encryption'	=> 'ssl',
+		'encryption'	=> null,
 		'username'		=> null,
 		'password'		=> null
 	);
@@ -129,7 +144,7 @@ $data = prepareData($config, $call_data);
 $result = sendData($config, $data);
 
 if ($result)
-	http_response_code(200); else
-	http_response_code(400);
+	header("HTTP/1.1 200 OK"); else
+	header("HTTP/1.1 400 error");
 
 ?>
