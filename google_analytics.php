@@ -13,12 +13,12 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This script is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this script. If not, see http://www.gnu.org/licenses/.
  */
@@ -104,8 +104,21 @@ $config = array(
 $result = false;
 if ($_REQUEST['code'] == $config['validation_code']) {
 	$result = true;  // assume all events can be sent
-	foreach ($event_data as $event)
-		$result &= sendEvent($config, $event, $call_id);
+
+	if (isset($call_data['cvars']) && isset($call_data['cvars']['analytics_id_list'])) {
+		// send first event to all the analytics
+		$event = $event_data[0];
+
+		foreach($call_data['cvars']['analytics_id_list'] as $analytic_id) {
+			$event['uacode'] = $analytic_id;
+			$result &= sendEvent($config, $event, $call_id);
+		}
+
+	} else {
+		// sent all events to specified analytics ids
+		foreach ($event_data as $event)
+			$result &= sendEvent($config, $event, $call_id);
+	}
 }
 
 // set response code appropriately
