@@ -24,7 +24,7 @@ function connect($url, $access_code, $secret_code)
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     $out = curl_exec($ch);
     if (curl_error($ch)) {
-        print "error:" . curl_error($ch) . "<br />";
+        trigger_error("Connection Error", E_USER_ERROR);
     } else {
         return $out;
     }
