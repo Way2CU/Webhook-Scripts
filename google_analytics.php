@@ -102,7 +102,7 @@ $config = array(
 
 // post all the events
 $result = false;
-if ($_REQUEST['code'] == $config['validation_code']) {
+if (isset($_REQUEST['code']) && $_REQUEST['code'] == $config['validation_code']) {
 	$result = true;  // assume all events can be sent
 
 	if (isset($call_data['cvars']) && isset($call_data['cvars']['analytics_id_list'])) {
