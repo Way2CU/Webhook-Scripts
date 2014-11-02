@@ -52,6 +52,7 @@ function sendEvent($config, $event, $call_id) {
 	$header .= "Content-Type: application/x-www-form-urlencoded\n";
 	$header .= "Content-Length: {$content_length}\n";
 	$header .= makeAuthorization($config);
+	$header .= "Host: {$config['endpoint_url']}\n";
 	$header .= "Connection: close\n\n";
 
 	// open socket
@@ -81,16 +82,29 @@ function sendEvent($config, $event, $call_id) {
 $call_data = json_decode(file_get_contents('php://input'));
 
 // data to send
-$call_id = $call_data['id'];
+$call_id = $call_data->id;
 $event_data = array(
 	array(
 		'ga_category'	=> 'Calls',
-		'ga_action'		=> $call_data['source'],
+		'ga_action'		=> $call_data->source,
 		'ga_label'		=> '',
-		'ga_value'		=> $call_data['duration'],
+		'ga_value'		=> $call_data->duration,
 		'uacode'		=> ''
 	)
 );
+
+/**
+ * List of analytic id's to submit event to.
+ *
+ * Note: If this array is not empty, only first event
+ * will be sent to the specified list!
+ */
+$analytics_id_list = array();
+
+if (property_exists($call_data, 'cvars')) {
+	$object = json_decode($call_data->cvars);
+	$analytics_id_list = $object[0]->analytics_id_list;
+}
 
 // access configuration
 $config = array(
@@ -105,11 +119,11 @@ $result = false;
 if (isset($_REQUEST['code']) && $_REQUEST['code'] == $config['validation_code']) {
 	$result = true;  // assume all events can be sent
 
-	if (isset($call_data['cvars']) && isset($call_data['cvars']['analytics_id_list'])) {
+	if (count($analytics_id_list)) {
 		// send first event to all the analytics
 		$event = $event_data[0];
 
-		foreach($call_data['cvars']['analytics_id_list'] as $analytic_id) {
+		foreach($analytics_id_list as $analytic_id) {
 			$event['uacode'] = $analytic_id;
 			$result &= sendEvent($config, $event, $call_id);
 		}
@@ -123,7 +137,6 @@ if (isset($_REQUEST['code']) && $_REQUEST['code'] == $config['validation_code'])
 
 // set response code appropriately
 if ($result)
-	http_response_code(200); else
-	http_response_code(400);
-
+	header("HTTP/1.1 200 Ok"); else
+	header("HTTP/1.1 400 Bad request");
 ?>
